@@ -1,0 +1,84 @@
+﻿@model BooksViewModel;
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Add New Book</h1>
+
+<form enctype="multipart/form-data" asp-action="AddNewBook" asp-controller="Book" id="bookCreationForm" method="post">
+
+    <div class="mb-3">
+        <label asp-for="book.Title" class="form-label">Book Title</label>
+        <input type="text" asp-for="book.Title" class="form-control" id="booktitle" required>
+    </div>
+    <div class="mb-3">
+        <label asp-for="book.Author" class="form-label">Author</label>
+        <input type="text" asp-for="book.Author" class="form-control" id="bookauthor" required>
+    </div>
+
+    <div class="form-group">
+        <label for="bookImage">Image</label>
+        <input name="bookImage" type="file" class="form-control-file" id="bookImage" required>
+    </div>
+    <div class="row justify-content-center align-items-center">
+        <button type="submit" class="btn btn-primary">Add New Book</button>
+    </div>
+</form>
+<script src="~/js/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    $(document).ready(function () {
+        $("#bookCreationForm").submit(function (e) {
+            e.preventDefault(); // Prevent page reload
+            var form = $(this);
+            var formData = new FormData(form[0]); // Create FormData object from form
+
+            // Append file from file input to FormData
+            var fileInput = $('#bookImage')[0];
+            formData.append('bookImage', fileInput.files[0]);
+
+            // Form data will now include the file
+            $.ajax({
+                type: form.attr('method'),
+                url: form.attr('action'),
+                data: formData,
+                processData: false,  // Prevent jQuery from automatically processing the data
+                contentType: false,  // Prevent jQuery from automatically setting content type
+                success: function (data) {
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: data.message,
+                            showCancelButton: true,
+                            confirmButtonText: 'Stay',
+                            cancelButtonText: 'Go to Book List',
+                            reverseButtons: true
+                        }).then(function (result) {
+                            if (result.isConfirmed) {
+                                // Stay on the current page
+                            } else {
+                                window.location.href = "/Home/Index"; // Redirect to book list
+                            }
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: data.message
+                        });
+                    }
+                },
+                error: function () {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'An error occurred while processing your request.'
+                    });
+                }
+            });
+        });
+    });
+</script>
+
+

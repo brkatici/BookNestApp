@@ -1,0 +1,166 @@
+﻿@model BooksViewModel;
+
+@if (Model.book.IsAvailable==false)
+{
+    // Kitap halihazırda ödünç alınmış ise ilgili ödünç alma detaylarını göster
+    //Eğer kitap geri getirilmiş ise form üzerinden ilgili geri alma işlemini onayla
+      <div class="row">
+      <div class="col">
+          <h5 class="text-warning">Book Informations</h5>
+            <ul>
+                <li style="list-style-type:none"><img height="100" width="80" src="~/@Model.book.ImageUrl" /></li>
+                <li>Title: @Model.book.Title</li>
+                <li>Author: @Model.book.Author</li>
+                
+                <li>Is Available : @Model.book.IsAvailable</li>
+            </ul>
+      </div>
+      <div class="col">
+            <h5 class="text-warning">Borrower Informations</h5>
+          <ul>
+              <li>Name : @Model.borrower.Name</li>
+                <li>Surname : @Model.borrower.Surname</li>
+                <li>Mail : @Model.borrower.Email</li>
+                <li>Phone :@Model.borrower.PhoneNumber</li>
+          </ul>
+      </div>
+      </div>
+    <div class="row justify-content-center">
+
+            <h5 class="text-warning mt-2">About Borrowing</h5>
+              <ul>
+                  <li>Borrowing : @Model.borrowDetails.BorrowDate</li>
+                <li>Returning : @Model.borrowDetails.ReturnDate</li>
+              </ul>
+      </div>
+
+    <form method="post" asp-action="ReturnBook" asp-controller="Home" id="bookReturnForm">
+         <input hidden type="text" value="@Model.borrowDetails.Id" asp-for="@Model.borrowDetails.Id"/>
+        <div class="row justify-content-center">
+            <button type="submit" class="btn btn-danger"><i class="bi bi-download"></i>Book Returned</button>
+        </div>
+     </form>
+
+}
+else
+{
+
+    // Kitap ödünç alınabilir durumda ise;
+    //Form üzerinden ödünç alan kişinin bilgileri ve geri getirme tarihi istenir
+
+    <form asp-action="LendTheBook" asp-controller="Home" id="bookLendingform" method="post">
+        <h5>Borrower's :</h5>
+        <div class="mb-3">
+            <label asp-for="borrower.Name" class="form-label">Name</label>
+            <input type="text" asp-for="borrower.Name" class="form-control" id="borrowerName" required>
+        </div>
+        <div class="mb-3">
+            <label asp-for="borrower.Surname" class="form-label">Surname</label>
+            <input type="text" asp-for="borrower.Surname" class="form-control" id="borrowerSurname" required>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="borrower.Email" class="form-label">Email</label>
+            <input type="email" class="form-control" asp-for="borrower.Email" id="InputEmail" aria-describedby="emailHelp" required>
+        </div>
+        <div class="mb-3">
+            <label asp-for="borrower.PhoneNumber" class="form-label">Phone</label>
+            <input type="tel" class="form-control" asp-for="borrower.PhoneNumber" id="phone" required>
+        </div>
+        <div class="mb-3">
+            <label asp-for="borrowDetails.ReturnDate" class="form-label">Return Date</label>
+            <input type="date" class="form-control" asp-for="borrowDetails.ReturnDate" id="returnDate" required>
+        </div>
+
+        <input type="text" asp-for="book.Id" hidden />
+        <div class="row justify-content-center align-items-center">
+            <button type="submit" class="btn btn-primary">Lend This Book</button>
+        </div>
+    </form>
+
+        
+}
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    $(document).ready(function () {
+        //Kitap ödünç verme işlemini controller tarafındaki ilgili actiona yönlendir
+        $("#bookLendingform").submit(function (e) {
+            e.preventDefault(); // Sayfanın yenilenmesini engelle
+            var form = $(this);
+            var formData = form.serialize();
+            // Form verilerini AJAX ile gönder
+            $.ajax({
+                type: form.attr('method'),
+                url: form.attr('action'),
+                data: formData,
+                success: function (data) {
+                    //dönüşe göre ilgili sweetalertleri göster
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: data.message
+                        }).then(function () {
+                            window.location.reload(); // Sayfayı yenile
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: data.message
+                        });
+                    }
+                },
+                error: function () {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'An error occurred while processing your request.'
+                    });
+                }
+            });
+        });
+    });
+</script>
+<script>
+    $(document).ready(function () {
+        //Kitap geri alma işlemini controller tarafındaki ilgili actiona yönlendir
+        $("#bookReturnForm").submit(function (e) {
+            e.preventDefault(); // Sayfanın yenilenmesini engelle
+            var form = $(this);
+            var formData = form.serialize();
+
+            // Form verilerini AJAX ile gönder
+            $.ajax({
+                type: form.attr('method'),
+                url: form.attr('action'),
+                data: formData,
+                success: function (data) {
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: data.message
+                        }).then(function () {
+                            window.location.reload(); // Sayfayı yenile
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: data.message
+                        });
+                    }
+                },
+                error: function () {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'An error occurred while processing your request.'
+                    });
+                }
+            });
+        });
+    });
+</script>

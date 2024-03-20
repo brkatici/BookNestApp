@@ -1,0 +1,118 @@
+﻿@model List<BookDetailsSqlView>;
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-12">
+            <h2 class="mb-2 page-title">Book List</h2>
+            <p class="card-text">BookNest is an application that facilitates library management. It allows you to manage received and returned books in a simple way  </p>
+            <div class="row my-4">
+                <!-- Small table -->
+                <div class="col-md-12">
+                    <div class="card shadow">
+                        <div class="card-body">
+                            <!-- table -->
+                            <table class="table datatables" id="dataTable-1">
+                                <thead>
+                                    <tr>
+                                        <th>Title</th>
+                                        <th>Author</th>
+                                        <th>Image URL</th>
+                                        <th>Is Available</th>
+                                        <th>Borrower Name</th>
+                                        <th>Borrow Date</th>
+                                        <th>Returning Date</th>
+                                        <th>#Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                  @foreach (var item in Model)
+                                    {
+                                        <tr>
+                                            <td>@item.Title</td>
+                                            <td>@item.Author</td>
+                                            <td><img width="100" height="120" src="~/@item.ImageUrl" /></td>
+                                            <td>
+                                                @(item.IsAvailable.GetValueOrDefault() ?
+                                                    (Html.Raw("<span class='badge badge-pill badge-success'>Yes</span>")) :
+                                                    (Html.Raw("<span class='badge badge-pill badge-danger'>Borrowed</span>")))
+
+                                            </td>
+                                           <td>
+                                                @(item.Name ?? "--") @(item.Surname ?? "--")
+
+                                           </td>
+                                            <td>@(item.BorrowDate.HasValue ? item.BorrowDate.Value.ToString("dd/MM/yyyy") : "--")</td>
+                                            <td>@(item.ReturnDate.HasValue ? item.ReturnDate.Value.ToString("dd/MM/yyyy") : "--")</td>
+                                            <td>
+                                                @(item.IsAvailable.GetValueOrDefault() ?
+                                                    (Html.Raw("<button class='btn btn-success borrowBtn' data-targeturl='/Home/LoadLendingModal/" + item.BookId + "'>Lend</button>")) :
+                                                    (Html.Raw("<button class='btn btn-warning borrowBtn' data-targeturl='/Home/LoadLendingModal/" + item.BookId + "'>Information</button>")))
+                                            </td>
+
+                                        </tr>
+
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div> <!-- simple table -->
+            </div> <!-- end section -->
+        </div> <!-- .col-12 -->
+    </div> <!-- .row -->
+</div>
+<div class="modal fade" id="borrowBookModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">Informations</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+            </div>
+            <div class="modal-footer">
+               
+            </div>
+        </div>
+    </div>
+</div>
+<script src="~/js/jquery.min.js"></script>
+<script src='~/js/jquery.dataTables.min.js'></script>
+<script src='~/js/dataTables.bootstrap4.min.js'></script>
+<script>
+    $('#dataTable-1').DataTable(
+        {
+            autoWidth: true,
+            "lengthMenu": [
+                [16, 32, 64, -1],
+                [16, 32, 64, "All"]
+            ]
+        });
+</script>
+<script type="text/javascript">
+
+    // class ı borrowBtn olan butonlara basıldığında data-targeturl ile işaretlenmiş url`e bir Ajax post gönder ve
+    //  dönen partial view yapısını modal-body içerisine yerleştir
+    // modalı göster
+    $(function () {
+        $(document).on('click', '.borrowBtn', function (event) {
+            const url = $(this).attr("data-targeturl");
+            event.preventDefault();
+            $.ajax({
+                type: 'post',
+                url: url,
+                processData: false,
+                contentType: false,
+                success: function (result) {
+                    $("#borrowBookModal .modal-body").load(url);
+                    $("#borrowBookModal").modal("show");
+                },
+                error: function (error) {
+                    alert("Yükleme Başarısız", "Kitap bilgileri eklenirken bir hata ile karşılaşıldı!", "error");
+                }
+            });
+        });
+    });
+
+</script>
